@@ -1,46 +1,43 @@
-extends Area2D
+extends CharacterBody2D
 
 class_name Player
 
-@export var speed = 250
-var direction = Vector2.ZERO
+enum PlayerMode{small,big,shooting}
 
-@onready var collision_rect: CollisionShape2D = $CollisionShape2D
-var bounding_size_x
-var start_bound
-var end_bound
-@onready var animation_player = $AnimationPlayer
+var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
 
 
-func _ready():
-	bounding_size_x = collision_rect.shape.get_rect().size.x
-	var rect = get_viewport().get_visible_rect()
-	var camera = get_viewport().get_camera_2d()
-	start_bound = (camera.position.x - rect.size.x) / 2
-	end_bound = (camera.position.x - rect.size.x) / 2
+@onready var animated_sprite_2d = $AnimatedSprite2D as PlayerAnimatedSprite
+@onready var area_collision_shape_2d = $Area2D/AreaCollisionShape2D
+@onready var body_collision_shape_2d = $BodyCollisionShape2D
 
-func _process(delta):
-	var input = Input.get_axis("move_left", "move_right")
-	if input < 0:
-		direction = Vector2.LEFT
-	elif input > 0:
-		direction = Vector2.RIGHT
+@export_group("Locomotion")
+@export var run_speed_damping = 0.45
+@export var speed = 225
+@export var jump_velocity = -350
+@export_group("")
+
+var player_mode = PlayerMode.small
+
+func _physics_process(delta):
+	
+	if not is_on_floor():
+		velocity.y += gravity * delta
+		
+	if Input.is_action_just_pressed("jump") and is_on_floor():
+		velocity.y = jump_velocity
+	
+	if Input.is_action_just_released("jump") and velocity.y < 0:
+		velocity.y *= 0.5
+		
+	var direction = Input.get_axis("left","right")
+	
+	if direction: 
+		velocity.x = lerp(velocity.x, speed * direction, run_speed_damping * delta)
 	else:
-		direction = Vector2.ZERO
+		velocity.x = move_toward(velocity.x, 0,speed * delta)
 	
+	animated_sprite_2d.trigger_animation(velocity, direction, player_mode)
 	
-	var delta_movement = direction.x * speed  * delta
-	position.x += delta_movement
-	
-	if(position.x + delta_movement < start_bound + bounding_size_x * transform.get_scale().x ||
-		position.x + delta_movement > end_bound - bounding_size_x * transform.get_scale().x):
-		return
-
-	position.x += delta_movement
-
-func on_player_destroyed():
-	speed = 0
-	animation_player.play("new_animation")
-	
-
+	move_and_slide()
 
