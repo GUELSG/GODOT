@@ -1,0 +1,62 @@
+[gd_scene load_steps=8 format=3 uid="uid://cg34fvnfkixac"]
+
+[ext_resource type="Script" path="res://Scenes/goomba.gd" id="1_4ifm3"]
+[ext_resource type="Texture2D" uid="uid://crf10bpm3er7y" path="res://Assests Mario/Sprites/brown_enemies.png" id="1_t3o5h"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ntia5"]
+atlas = ExtResource("1_t3o5h")
+region = Rect2(36, 14, 18, 13)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_re23s"]
+atlas = ExtResource("1_t3o5h")
+region = Rect2(0, 8, 18, 19)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6o0hw"]
+atlas = ExtResource("1_t3o5h")
+region = Rect2(18, 8, 18, 19)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_aldu4"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ntia5")
+}],
+"loop": true,
+"name": &"dead",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_re23s")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6o0hw")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 5.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_evsps"]
+
+[node name="Goomba" type="Area2D"]
+collision_layer = 4
+collision_mask = 9
+script = ExtResource("1_4ifm3")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_aldu4")
+animation = &"walk"
+autoplay = "walk"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_evsps")
+
+[node name="RayCast2D" type="RayCast2D" parent="."]
+target_position = Vector2(0, 8)
+collision_mask = 18
+
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="."]
+
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]
+[connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_visible_on_screen_notifier_2d_screen_exited"]
